@@ -92,6 +92,9 @@ class Qix {
   }
 
   Playfield::Controls TranslateKeyboardCommands(const SDL_Event& event) const {
+    if (event.key.repeat > 0) {
+      return Playfield::Controls::None;
+    }
     const auto code = event.key.keysym.scancode;
 
     if (SDL_SCANCODE_LEFT == code) {
@@ -168,7 +171,6 @@ class Qix {
     int64_t time_since_last_auto_repeat = 0;
     int64_t auto_repeat_threshold = kAutoRepeatInitialDelay;
     RepeatFunc function_to_repeat;
-    bool ignore_event = false;
     auto active_control = Playfield::Controls::None;
     SDL_Event event;
 
@@ -182,26 +184,22 @@ class Qix {
         }
         switch (event.type) {
           case SDL_KEYDOWN:
-            if (event.key.repeat > 0) {
-              control = Playfield::Controls::None;
-              break;
-            }
             control = TranslateKeyboardCommands(event);
-            ignore_event = (active_control != Playfield::Controls::None);
             break;
           case SDL_CONTROLLERBUTTONDOWN:
             control = TranslateControllerCommands(event);
-            ignore_event = (active_control != Playfield::Controls::None);
             break;
           case SDL_KEYUP:
-          case SDL_CONTROLLERBUTTONUP:
-            if (ignore_event) {
-              std::cout << "I" << std::endl;
-              ignore_event = false;
-              break;
+            std::cout << "UP ";
+            if (TranslateKeyboardCommands(event) == active_control) {
+              active_control = Playfield::Controls::None;
             }
-            std::cout << "KU" << std::endl;
-            active_control = Playfield::Controls::None;
+            break;
+          case SDL_CONTROLLERBUTTONUP:
+            std::cout << "UP ";
+            if (TranslateControllerCommands(event) == active_control) {
+              active_control = Playfield::Controls::None;
+            }
             break;
           case SDL_JOYDEVICEADDED:
             if (SDL_IsGameController(event.jbutton.which) == 0) {
