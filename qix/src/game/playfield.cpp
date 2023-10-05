@@ -113,7 +113,8 @@ void Playfield::GameControl(Controls control_pressed) {
 
 void Playfield::Render(double delta) {
   SDL_RenderClear(renderer_);
-  //SDL_RenderCopy(renderer_, surface_, nullptr, nullptr);
+  SDL_RenderCopy(renderer_, surface_, nullptr, nullptr);
+  SDL_SetRenderTarget(renderer_, nullptr);
   RenderObjects(objects_, delta);
   SDL_RenderPresent(renderer_);
 }
