@@ -1,7 +1,9 @@
+#include "game/assets.h"
 #include "game/playfield.h"
 #include "utility/timer.h"
 
 #include <iostream>
+#include <memory>
 
 namespace {
 
@@ -22,6 +24,19 @@ void DrawPixel(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y) {
   SDL_SetRenderTarget(renderer, nullptr);
 }
 
+void RenderObjects(std::deque<std::shared_ptr<Object>>& objects, double delta_time) {
+  for (auto it = objects.begin(); it != objects.end();) {
+    (*it)->Render(delta_time);
+    /*if (auto [status, event] = (*it)->IsReady(); status) {
+      events.Push(event);
+      it = animations.erase(it);
+    } else {
+      ++it;
+      }*/
+    ++it;
+  }
+}
+
 }
 
 using namespace utility;
@@ -38,11 +53,13 @@ Playfield::Playfield() {
     std::cout << "Failed to create renderer : " << SDL_GetError() << std::endl;
     exit(-1);
   }
-  playfield_texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, kWidth, kHeight);
-  ClearTexture(renderer_, playfield_texture_);
+  surface_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, kWidth, kHeight);
+  ClearTexture(renderer_, surface_);
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+  game_controller_ = std::make_shared<utility::GameController>(kAssetFolder);
   SDL_RaiseWindow(window_);
+  AddObject<Line>(renderer_, surface_, 200, 200, 150, Color::Red);
 }
 
 Playfield::~Playfield() noexcept {
@@ -52,7 +69,7 @@ Playfield::~Playfield() noexcept {
 
 void Playfield::NewGame() {
   x_ = y_ = 0;
-  ClearTexture(renderer_, playfield_texture_);
+  ClearTexture(renderer_, surface_);
 }
 
 void Playfield::GameControl(Controls control_pressed) {
@@ -62,28 +79,28 @@ void Playfield::GameControl(Controls control_pressed) {
         break;
       }
       y_--;
-      DrawPixel(renderer_, playfield_texture_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);
       break;
     case Controls::Down:
       if (y_ >= kHeight) {
         break;
       }
       y_++;
-      DrawPixel(renderer_, playfield_texture_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);
       break;
     case Controls::Left:
       if (x_ <= 0) {
         break;
       }
       x_--;
-      DrawPixel(renderer_, playfield_texture_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);
       break;
     case Controls::Right:
       if (x_ >= kWidth) {
         break;
       }
       x_++;
-      DrawPixel(renderer_, playfield_texture_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);
       break;
     case Controls::Fast:
       break;
@@ -94,9 +111,10 @@ void Playfield::GameControl(Controls control_pressed) {
   }
 }
 
-void Playfield::Render(double) {
+void Playfield::Render(double delta) {
   SDL_RenderClear(renderer_);
-  SDL_RenderCopy(renderer_, playfield_texture_, nullptr, nullptr);
+  //SDL_RenderCopy(renderer_, surface_, nullptr, nullptr);
+  RenderObjects(objects_, delta);
   SDL_RenderPresent(renderer_);
 }
 

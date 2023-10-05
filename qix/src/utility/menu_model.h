@@ -1,9 +1,9 @@
 #pragma once
 
-
+#include <tuple>
 #include <string>
 #include <vector>
-#include <tuple>
+#include <iostream>
 
 namespace utility {
 
@@ -52,12 +52,12 @@ class MenuModel {
 
  protected:
   void Add(MenuItemType type, const std::vector<std::string>& items) {
-    model_.emplace_back(std::make_tuple(type, 0, items));
+    model_.emplace_back(type, 0, items);
     set_selected_item_ = true;
   }
 
   void Add(MenuItemType type, const std::string& item) {
-    model_.emplace_back(std::make_tuple(type, 0, std::vector<std::string>{item}));
+    model_.emplace_back(type, 0, std::vector<std::string>{item});
     set_selected_item_ = true;
   }
 
@@ -66,7 +66,10 @@ class MenuModel {
 
     std::get<1>(e) = 0;
     std::get<2>(e) = items;
-    menu_action_->ItemChanged(item);
+
+    if (nullptr != menu_action_) {
+      menu_action_->ItemChanged(item);
+    }
   }
 
  private:
