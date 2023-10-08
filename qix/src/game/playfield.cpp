@@ -59,7 +59,7 @@ Playfield::Playfield() {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   game_controller_ = std::make_shared<utility::GameController>(kAssetFolder);
   SDL_RaiseWindow(window_);
-  AddObject<Line>(renderer_, surface_, 200, 200, 150, Color::Red);
+  AddObject<Line>(renderer_, 500, 500, 0, 100, 50, Color::Red);
 }
 
 Playfield::~Playfield() noexcept {
