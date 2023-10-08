@@ -45,8 +45,6 @@ class Qix {
     TTF_Quit();
   }
 
-
-
   Playfield::Controls TranslateKeyboardCommands(const SDL_Event& event) const {
     if (event.key.repeat > 0) {
       return Playfield::Controls::None;

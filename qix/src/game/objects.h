@@ -24,6 +24,7 @@ public:
   virtual void Render(double) = 0;
 
   inline operator SDL_Renderer*() const { return renderer_; }
+
   inline operator SDL_Texture*() const { return surface_; }
 
   virtual std::string name() const { return typeid(*this).name(); }
@@ -112,4 +113,21 @@ class Line final : public Object {
   bool new_direction_reached_ = false;
   double velocity_= 0.0;
   Color color_;
+};
+
+class Qix final : public Object {
+ public:
+  Qix(SDL_Renderer *renderer, int start_x, int start_y) : Object(renderer)  {
+    x_ = start_x;
+    y_ = start_y;
+  }
+
+  virtual void Render(double delta) override {
+    for (auto& l : lines_t) {
+      l.Render(delta);
+    }
+  }
+
+ private:
+  std::vector<Line> lines_t;
 };
