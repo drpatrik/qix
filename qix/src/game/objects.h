@@ -1,8 +1,8 @@
 #pragma once
 
+#include "constants.h"
 #include "utility/color.h"
 #include "utility/texture.h"
-#include "constants.h"
 #include "utility/function_caller.h"
 
 #include <iostream>
@@ -40,78 +40,47 @@ protected:
 
   inline void RenderCopy(Texture& texture) { SDL_RenderCopy(*this, texture, nullptr, texture); }
 
-  inline void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha) { SDL_SetRenderDrawColor(*this, r, g, b, alpha); }
-
 private:
   SDL_Renderer* renderer_;
   SDL_Texture* surface_;
 };
 
-class Line final : public Object {
+class LineDraw final : public Object {
  public:
-  Line(SDL_Renderer *renderer, int start_x, int start_y, int direction, int length, double velocity, Color color) :
+  LineDraw(SDL_Renderer *renderer, int start_x, int start_y, int direction, int length, double velocity, Color color) :
       Object(renderer, start_x, start_y), radius_(length / 2.0), velocity_(velocity), color_(color) {
     SetDirection(direction);
   }
 
   void SetDirection(int angle) {
-    if (-1 == new_direction_) {
-      angle_ = new_angle_ = kPiDiv180 * (angle + 90);
-      direction_ = new_direction_ = kPiDiv180 * angle;
-      new_direction_reached_ = true;
-    } else {
-      new_angle_ = kPiDiv180 * (angle + 90);
-      new_direction_ = kPiDiv180 * angle;
-      new_direction_reached_ = false;
-    }
+    const double kPiDiv180 = M_PI / 180.0;
+
+    angle_ = kPiDiv180 * (angle + 90);
+    direction_ = kPiDiv180 * angle;
   }
 
   void SetVelocity(double velocity) { velocity_ = velocity; }
 
   void SetColor(Color color) { color_ = color; }
 
+  void SetLength(int length) { radius_ = length / 2; }
+
   virtual void Render(double delta) override {
-    std::apply([this](auto &&... args) { Object::SetColor(args...); }, UnpackColor(color_));
+    std::apply([](auto &&... args) { utility::SetColor(args...); }, UnpackColor(*this, color_));
 
-    const int x1 = x_ + cos(angle_) * radius_;
-    const int y1 = y_ + -sin(angle_) * radius_;
-    const int x2 = x_ + cos(angle_ + kPi) * radius_;
-    const int y2 = y_ + -sin(angle_ + kPi) * radius_;
+    SDL_RenderDrawLine(*this, x_ + cos(angle_) * radius_, y_ + -sin(angle_) * radius_,
+                       x_ + cos(angle_ + M_PI) * radius_, y_ + -sin(angle_ + M_PI) * radius_);
 
-    SDL_RenderDrawLine(*this, x1, y1, x2, y2);
+    std::apply([](auto &&... args) { utility::SetColor(args...); }, UnpackColor(*this, Color::Black));
 
-    std::apply([this](auto &&... args) { Object::SetColor(args...); }, UnpackColor(Color::Black));
-
-    if (!new_direction_reached_) {
-      if (direction_ < new_direction_) {
-        angle_ += delta * (velocity_ / 2.0);
-        direction_ += delta * (velocity_ / 2.0);
-        new_direction_reached_ = (direction_ >= new_direction_);
-      } else if (direction_ > new_direction_) {
-        angle_ -= delta * (velocity_ / 2.0);
-        direction_ -= delta * (velocity_  / 2.0);
-        new_direction_reached_ = (direction_ <= new_direction_);
-      }
-      if (new_direction_reached_) {
-        angle_ = new_angle_;
-        direction_ = new_direction_;
-      }
-    }
     x_ += cos(direction_) * delta * velocity_;
     y_ += -sin(direction_) * delta * velocity_;
   }
-
- protected:
-  const double kPi = 3.14159265358;
-  const double kPiDiv180 = kPi / 180.0;
 
  private:
   double radius_;
   double angle_ = 0.0;
   double direction_ = 0.0;
-  double new_direction_ = -1;
-  double new_angle_ = -1;
-  bool new_direction_reached_ = false;
   double velocity_= 0.0;
   Color color_;
 };
@@ -121,10 +90,12 @@ class LineTexture final : public Object {
   LineTexture(SDL_Renderer *renderer, int start_x, int start_y, int direction, int length, double velocity, Color color) :
       Object(renderer, start_x, start_y), velocity_(velocity), color_(color) {
     SetDirection(direction);
-    texture_ = std::make_unique<Texture>(*this, start_x, start_y, length, 3, color_);
+    texture_ = std::make_unique<Texture>(*this, start_x, start_y, length, 1, color_);
   }
 
   void SetDirection(int angle) {
+    const double kPiDiv180 = (M_PI / 180.0);
+
     angle_ = angle;
     direction_ = kPiDiv180 * angle;
   }
@@ -149,8 +120,6 @@ class LineTexture final : public Object {
   }
 
  protected:
-  const double kPiDiv180 = (M_PI / 180.0);
-
   inline double CounterClockWise(double deg) const { return 360 - (360 + int(deg)) % 360; }
 
  private:
@@ -175,5 +144,5 @@ class QixObject final : public Object {
   }
 
  private:
-  std::vector<Line> lines_t;
+  std::vector<LineDraw> lines_t;
 };

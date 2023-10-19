@@ -22,14 +22,11 @@ class Texture {
     SDL_SetRenderTarget(renderer, target_texture.get());
     SDL_RenderClear(renderer);
 
-    auto [r,g,b,alpha] = UnpackColor(color);
-
-    SDL_SetRenderDrawColor(renderer, r, g, b, alpha);
+    std::apply([](auto &&... args) { SetColor(args...); }, UnpackColor(renderer, color));
 
     rc_ = { 0, 0, width, height };
 
     SDL_RenderFillRect(renderer, &rc_);
-
     SDL_SetRenderTarget(renderer, nullptr);
 
     texture_ = std::move(target_texture);
@@ -62,11 +59,11 @@ class Texture {
 
   inline int x() const { return rc_.x; }
 
+  inline int y() const { return rc_.y; }
+
   inline int center_x(int w) const { return utility::Center(w, rc_.w); }
 
   inline int center_y(int h) const { return utility::Center(h, rc_.h); }
-
-  inline int y() const { return rc_.y; }
 
   inline int width() const { return rc_.w; }
 

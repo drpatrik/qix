@@ -32,8 +32,14 @@ inline const SDL_Color GetColor(Color color, uint8_t alpha = 255) {
   return { kColors[color].r, kColors[color].g, kColors[color].b, alpha };
 }
 
+inline void SetColor(SDL_Renderer* renderer, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha) { SDL_SetRenderDrawColor(renderer, r, g, b, alpha); }
+
 inline const std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> UnpackColor(Color color, uint8_t alpha = 255) {
   return std::make_tuple(kColors[color].r, kColors[color].g, kColors[color].b, alpha);
+}
+
+inline const std::tuple<SDL_Renderer*, uint8_t, uint8_t, uint8_t, uint8_t> UnpackColor(SDL_Renderer* renderer, Color color, uint8_t alpha = 255) {
+  return std::make_tuple(renderer, kColors[color].r, kColors[color].g, kColors[color].b, alpha);
 }
 
 } // namespace utility

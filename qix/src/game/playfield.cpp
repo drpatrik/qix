@@ -7,9 +7,6 @@
 
 namespace {
 
-const int kWidth = 640;
-const int kHeight = 480;
-
 void ClearTexture(SDL_Renderer* renderer, SDL_Texture* texture) {
   SDL_SetRenderTarget(renderer, texture);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -53,13 +50,19 @@ Playfield::Playfield() {
     std::cout << "Failed to create renderer : " << SDL_GetError() << std::endl;
     exit(-1);
   }
+
+  if (0 != SDL_RenderSetLogicalSize(renderer_, kWidth, kHeight)) {
+    std::cout << "Failed to set logical size : " << SDL_GetError() << std::endl;
+    exit(-1);
+  }
+
   surface_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, kWidth, kHeight);
   ClearTexture(renderer_, surface_);
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   game_controller_ = std::make_shared<utility::GameController>(kAssetFolder);
   SDL_RaiseWindow(window_);
-  AddObject<LineTexture>(renderer_, 500, 500, direction_, 100, 75, Color::Red);
+  AddObject<LineDraw>(renderer_, kWidth / 2, kHeight / 2, direction_, 100, 0, Color::Red);
 }
 
 Playfield::~Playfield() noexcept {
@@ -95,7 +98,7 @@ void Playfield::GameControl(Controls control_pressed) {
       x_--;
       DrawPixel(renderer_, surface_, x_, y_);*/
       {
-        auto ptr = dynamic_cast<LineTexture *>(objects_.front().get());
+        auto ptr = dynamic_cast<LineDraw *>(objects_.front().get());
         direction_+=1;
         if (direction_ > 360) {
           direction_ = 0;
@@ -110,7 +113,8 @@ void Playfield::GameControl(Controls control_pressed) {
       x_++;
       DrawPixel(renderer_, surface_, x_, y_);*/
       {
-        auto ptr = dynamic_cast<LineTexture *>(objects_.front().get());
+        auto ptr = dynamic_cast<LineDraw *>(objects_.front().get());
+
         direction_-=1;
         if (direction_ < 0) {
           direction_ = 360;
