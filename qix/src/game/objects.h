@@ -3,6 +3,7 @@
 #include "utility/color.h"
 #include "utility/texture.h"
 #include "constants.h"
+#include "utility/function_caller.h"
 
 #include <iostream>
 
@@ -12,6 +13,8 @@ public:
   using Texture = utility::Texture;
 
   Object(SDL_Renderer *renderer, SDL_Texture* surface) : renderer_(renderer), surface_(surface) {}
+
+  Object(SDL_Renderer *renderer, int x, int y) : x_(x), y_(y), renderer_(renderer), surface_(nullptr) {}
 
   explicit Object(SDL_Renderer *renderer) : renderer_(renderer), surface_(nullptr) {}
 
@@ -47,9 +50,7 @@ private:
 class Line final : public Object {
  public:
   Line(SDL_Renderer *renderer, int start_x, int start_y, int direction, int length, double velocity, Color color) :
-      Object(renderer), radius_(length / 2.0), velocity_(velocity), color_(color) {
-    x_ = start_x;
-    y_ = start_y;
+      Object(renderer, start_x, start_y), radius_(length / 2.0), velocity_(velocity), color_(color) {
     SetDirection(direction);
   }
 
@@ -115,9 +116,54 @@ class Line final : public Object {
   Color color_;
 };
 
-class Qix final : public Object {
+class LineTexture final : public Object {
  public:
-  Qix(SDL_Renderer *renderer, int start_x, int start_y) : Object(renderer)  {
+  LineTexture(SDL_Renderer *renderer, int start_x, int start_y, int direction, int length, double velocity, Color color) :
+      Object(renderer, start_x, start_y), velocity_(velocity), color_(color) {
+    SetDirection(direction);
+    texture_ = std::make_unique<Texture>(*this, start_x, start_y, length, 3, color_);
+  }
+
+  void SetDirection(int angle) {
+    angle_ = angle;
+    direction_ = kPiDiv180 * angle;
+  }
+
+  void SetVelocity(double velocity) { velocity_ = velocity; }
+
+  void SetColor(Color color) {
+    color_ = color;
+    texture_ = std::make_unique<Texture>(*this, texture_->x(), texture_->y(), texture_->width(), texture_->height(), color_);
+  }
+
+  void SetLength(int length) {
+    texture_ = std::make_unique<Texture>(*this, texture_->x(), texture_->y(), length, texture_->height(), color_);
+  }
+
+  virtual void Render(double delta) override {
+    x_ += cos(direction_) * delta * velocity_;
+    y_ += -sin(direction_) * delta * velocity_;
+
+    texture_->SetXY(x_, y_);
+    SDL_RenderCopyEx(*this,*texture_, nullptr, *texture_, CounterClockWise(angle_ + 90), nullptr, SDL_FLIP_NONE);
+  }
+
+ protected:
+  const double kPiDiv180 = (M_PI / 180.0);
+
+  inline double CounterClockWise(double deg) const { return 360 - (360 + int(deg)) % 360; }
+
+ private:
+  int angle_ = 0.0;
+  double direction_ = 0.0;
+  double velocity_= 0.0;
+  Color color_;
+  std::unique_ptr<Texture> texture_ = nullptr;
+};
+
+class QixObject final : public Object {
+ public:
+  QixObject(SDL_Renderer *renderer, int start_x, int start_y) : Object(renderer)  {
     x_ = start_x;
     y_ = start_y;
   }

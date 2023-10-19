@@ -16,7 +16,29 @@ class Texture {
     std::tie(texture_, rc_.w, rc_.h) = CreateTextureFromFramedText(renderer, font, text, text_color, background_color);
   }
 
-  explicit Texture(std::tuple<std::shared_ptr<SDL_Texture>, int, int> texture) :
+  Texture(SDL_Renderer* renderer, int x, int y, int width, int height, Color color) {
+    auto target_texture = UniqueTexturePtr{ SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height) };
+
+    SDL_SetRenderTarget(renderer, target_texture.get());
+    SDL_RenderClear(renderer);
+
+    auto [r,g,b,alpha] = UnpackColor(color);
+
+    SDL_SetRenderDrawColor(renderer, r, g, b, alpha);
+
+    rc_ = { 0, 0, width, height };
+
+    SDL_RenderFillRect(renderer, &rc_);
+
+    SDL_SetRenderTarget(renderer, nullptr);
+
+    texture_ = std::move(target_texture);
+
+    rc_.x = x;
+    rc_.y = y;
+  }
+
+  explicit Texture(const std::tuple<std::shared_ptr<SDL_Texture>, int, int>& texture) :
       texture_(UniqueTexturePtr{ std::get<0>(texture).get() })  {
     rc_.w = std::get<1>(texture);
     rc_.h = std::get<2>(texture);
@@ -48,11 +70,7 @@ class Texture {
 
   inline int width() const { return rc_.w; }
 
-  inline void SetWidth(int w) { rc_.w = w; }
-
   inline int height() const { return rc_.h; }
-
-  inline void SetHeight(int h) { rc_.h = h; }
 
  private:
   UniqueTexturePtr texture_ = nullptr;

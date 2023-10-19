@@ -59,7 +59,7 @@ Playfield::Playfield() {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   game_controller_ = std::make_shared<utility::GameController>(kAssetFolder);
   SDL_RaiseWindow(window_);
-  AddObject<Line>(renderer_, 500, 500, 0, 100, 50, Color::Red);
+  AddObject<LineTexture>(renderer_, 500, 500, direction_, 100, 75, Color::Red);
 }
 
 Playfield::~Playfield() noexcept {
@@ -89,18 +89,34 @@ void Playfield::GameControl(Controls control_pressed) {
       DrawPixel(renderer_, surface_, x_, y_);
       break;
     case Controls::Left:
-      if (x_ <= 0) {
+      /*if (x_ <= 0) {
         break;
       }
       x_--;
-      DrawPixel(renderer_, surface_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);*/
+      {
+        auto ptr = dynamic_cast<LineTexture *>(objects_.front().get());
+        direction_+=1;
+        if (direction_ > 360) {
+          direction_ = 0;
+        }
+        ptr->SetDirection(direction_);
+      }
       break;
     case Controls::Right:
-      if (x_ >= kWidth) {
+      /*if (x_ >= kWidth) {
         break;
       }
       x_++;
-      DrawPixel(renderer_, surface_, x_, y_);
+      DrawPixel(renderer_, surface_, x_, y_);*/
+      {
+        auto ptr = dynamic_cast<LineTexture *>(objects_.front().get());
+        direction_-=1;
+        if (direction_ < 0) {
+          direction_ = 360;
+        }
+        ptr->SetDirection(direction_);
+      }
       break;
     case Controls::Fast:
       break;

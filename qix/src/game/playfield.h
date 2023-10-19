@@ -41,6 +41,7 @@ class Playfield final {
 
   int x_ = 0;
   int y_ = 0;
+  int direction_ = 0;
   std::deque<std::shared_ptr<Object>> objects_;
   std::shared_ptr<utility::GameController> game_controller_;
 };

@@ -52,10 +52,10 @@ class Qix {
     const auto code = event.key.keysym.scancode;
 
     if (SDL_SCANCODE_LEFT == code) {
-      std::cout << "L" << std::endl;
+      //std::cout << "L" << std::endl;
       return Playfield::Controls::Left;
     } else if (SDL_SCANCODE_RIGHT == code) {
-      std::cout << "R" << std::endl;
+      //std::cout << "R" << std::endl;
       return Playfield::Controls::Right;
     } if (SDL_SCANCODE_DOWN == code) {
       std::cout << "D" << std::endl;
@@ -141,13 +141,13 @@ class Qix {
             control = TranslateControllerCommands(event);
             break;
           case SDL_KEYUP:
-            std::cout << "UP ";
+            //std::cout << "UP ";
             if (TranslateKeyboardCommands(event) == active_control) {
               active_control = Playfield::Controls::None;
             }
             break;
           case SDL_CONTROLLERBUTTONUP:
-            std::cout << "UP ";
+            //std::cout << "UP ";
             if (TranslateControllerCommands(event) == active_control) {
               active_control = Playfield::Controls::None;
             }
