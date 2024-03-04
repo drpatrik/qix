@@ -12,7 +12,7 @@ target_link_libraries(qix ${SDL2_LIBRARY})
 target_link_libraries(qix ${SDL2_TTF_LIBRARIES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  target_link_libraries(qix -lc++)
+  target_link_libraries(qix)
 
   if (UNIX)
     target_link_libraries(qix -lm)
@@ -38,7 +38,7 @@ target_link_libraries(qix_test ${SDL2_LIBRARY})
 target_link_libraries(qix_test ${SDL2_TTF_LIBRARIES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  target_link_libraries(qix_test -lc++)
+  target_link_libraries(qix_test)
   if (UNIX)
     target_link_libraries(qix_test -lm)
   endif()
