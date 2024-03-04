@@ -116,6 +116,7 @@ class LineTexture final : public Object {
     y_ += -sin(direction_) * delta * velocity_;
 
     texture_->SetXY(x_, y_);
+    //SDL_Point pt = { 200 / 2, 1 / 2 };
     SDL_RenderCopyEx(*this,*texture_, nullptr, *texture_, CounterClockWise(angle_ + 90), nullptr, SDL_FLIP_NONE);
   }
 
@@ -132,17 +133,22 @@ class LineTexture final : public Object {
 
 class QixObject final : public Object {
  public:
-  QixObject(SDL_Renderer *renderer, int start_x, int start_y) : Object(renderer)  {
-    x_ = start_x;
-    y_ = start_y;
+  QixObject(SDL_Renderer *renderer, int start_x, int start_y) : Object(renderer, start_x, start_y)  {
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x, start_y, 65, 100, 150, Color::Red));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 30, start_y - 10, 65, 100, 150, Color::Red));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 60, start_y - 20, 65, 100, 150, Color::Red));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 90, start_y - 30, 65, 100, 150, Color::Red));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 120, start_y - 40, 65, 200, 150, Color::Green));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 150, start_y - 50, 65, 100, 150, Color::Blue));
+    lines_.emplace_back(std::make_shared<LineDraw>(renderer, start_x + 180, start_y - 60, 65, 100, 150, Color::Blue));
   }
 
   virtual void Render(double delta) override {
-    for (auto& l : lines_t) {
-      l.Render(delta);
+    for (auto& l : lines_) {
+      l->Render(delta);
     }
   }
 
  private:
-  std::vector<LineDraw> lines_t;
+  std::vector<std::shared_ptr<LineDraw>> lines_;
 };

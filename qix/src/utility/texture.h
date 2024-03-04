@@ -16,23 +16,17 @@ class Texture {
     std::tie(texture_, rc_.w, rc_.h) = CreateTextureFromFramedText(renderer, font, text, text_color, background_color);
   }
 
-  Texture(SDL_Renderer* renderer, int x, int y, int width, int height, Color color) {
-    auto target_texture = UniqueTexturePtr{ SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height) };
-
-    SDL_SetRenderTarget(renderer, target_texture.get());
+  Texture(SDL_Renderer* renderer, int x, int y, int width, int height, Color color) :
+      texture_(UniqueTexturePtr{ SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height) }) {
+    SDL_SetRenderTarget(renderer, texture_.get());
     SDL_RenderClear(renderer);
 
     std::apply([](auto &&... args) { SetColor(args...); }, UnpackColor(renderer, color));
 
-    rc_ = { 0, 0, width, height };
+    rc_ = { x, y, width, height };
 
-    SDL_RenderFillRect(renderer, &rc_);
+    SDL_RenderFillRect(renderer, nullptr);
     SDL_SetRenderTarget(renderer, nullptr);
-
-    texture_ = std::move(target_texture);
-
-    rc_.x = x;
-    rc_.y = y;
   }
 
   explicit Texture(const std::tuple<std::shared_ptr<SDL_Texture>, int, int>& texture) :
